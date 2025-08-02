@@ -4,99 +4,36 @@ on:
   push:
     branches:
       - main
-      - master
-    tags:
-      - 'v*.*.*'
+      - fix/*
   pull_request:
+    branches:
+      - main
+      - fix/*
 
 jobs:
-  setup:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: 8.0.x
 
-  build_windows:
-    needs: setup
-    runs-on: windows-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+      - name: Restore dependencies
+        run: dotnet restore
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
 
-      - name: Build Windows
-        run: dotnet build CounterStrikeSharp.sln -c Release -o build/
+      - name: Publish
+        run: dotnet publish -c Release -o out
 
-      - name: Create ZIP (Windows)
-        run: Compress-Archive -Path build/* -DestinationPath windows-build.zip
-
-      - name: Upload artifacts
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-build
-          path: windows-build.zip
-
-  build_linux:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Build Linux
-        run: dotnet build CounterStrikeSharp.sln -c Release -o build/
-
-      - name: Create ZIP (Linux)
-        run: zip -r linux-build.zip build/
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-build
-          path: linux-build.zip
-
-  build_managed:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Build Managed
-        run: dotnet build src/CounterStrikeSharp.Managed/CounterStrikeSharp.Managed.csproj -c Release -o build/
-
-      - name: Create ZIP (Managed)
-        run: zip -r managed-build.zip build/
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: managed-build
-          path: managed-build.zip
+          name: build-artifacts
+          path: out/
