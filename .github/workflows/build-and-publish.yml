@@ -29,7 +29,7 @@ jobs:
       - name: Build Windows
         run: dotnet publish -c Release -r win-x64 --self-contained false -o out/win
       - name: Upload artifact (Windows)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-windows
           path: out/win
@@ -47,7 +47,7 @@ jobs:
       - name: Build Linux
         run: dotnet publish -c Release -r linux-x64 --self-contained false -o out/linux
       - name: Upload artifact (Linux)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-linux
           path: out/linux
@@ -65,7 +65,7 @@ jobs:
       - name: Build Managed
         run: dotnet publish -c Release -o out/managed
       - name: Upload artifact (Managed)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-managed
           path: out/managed
