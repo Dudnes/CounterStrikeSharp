@@ -4,26 +4,17 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
 
 jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v3
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
+          dotnet-version: 8.0.x
 
   build_windows:
     runs-on: windows-latest
@@ -32,9 +23,16 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: 8.0.x
+      - name: Restore
+        run: dotnet restore
       - name: Build Windows
-        run: dotnet build --configuration Release --runtime win-x64
+        run: dotnet publish -c Release -r win-x64 --self-contained false -o out/win
+      - name: Upload artifact (Windows)
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-windows
+          path: out/win
 
   build_linux:
     runs-on: ubuntu-latest
@@ -43,9 +41,16 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: 8.0.x
+      - name: Restore
+        run: dotnet restore
       - name: Build Linux
-        run: dotnet build --configuration Release --runtime linux-x64
+        run: dotnet publish -c Release -r linux-x64 --self-contained false -o out/linux
+      - name: Upload artifact (Linux)
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-linux
+          path: out/linux
 
   build_managed:
     runs-on: ubuntu-latest
@@ -54,6 +59,13 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
-      - name: Build managed version
-        run: dotnet build --configuration Release
+          dotnet-version: 8.0.x
+      - name: Restore
+        run: dotnet restore
+      - name: Build Managed
+        run: dotnet publish -c Release -o out/managed
+      - name: Upload artifact (Managed)
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-managed
+          path: out/managed
